@@ -1,0 +1,105 @@
+<html>
+  <head>
+    <style>
+        #crash_site_map {
+            width: 600px;
+            height: 400px;
+            background-color: grey;
+        }
+    </style>
+    <title>My page title</title>
+  </head>
+  <body>
+  My crash site map
+  <div id="crash_site_map"></div>
+  <script>
+    var crash_site_map;
+    var old_position;
+    var tolerance = 10;
+
+    // Add proper lat/lng here instead of zeroes
+    var data = `51.0544179033767 -114.07286034924317 sat_dish.png
+51.05371652693376 -114.07140122753907 sat_dish.png
+51.052583511777776 -114.06410561901856 sat_dish.png
+51.05668381620702 -114.06341897351075 sat_dish.png
+51.06089164586556 -114.07080041271973 sat_dish.png
+51.059596969778134 -114.08049928051759 sat_dish.png
+51.05101882622773 -114.08281670910645 sat_dish.png
+51.05366257445968 -114.0829883704834 hospital.png
+51.05290723322242 -114.07878266674805 weapons.png
+51.05900356447172 -114.06676637036134 weapons.png
+51.053824431693364 -114.0672813544922 alien.png
+51.06168097070512 -114.0736198425293 alien.png
+51.05563894221939 -114.07027244567871 ship.png`;
+
+     // Split the data into an array of lines of data
+    var markers = data.split("\n");
+
+    // Save the locations of all markers
+    var all_markers = [];
+
+    function initMap() {
+        // SET YOUR OWN CENTER OF THE MAP
+        crash_site_map = new google.maps.Map(document.getElementById('crash_site_map'), {
+            zoom: 13,
+            center: {lat : 51.048615, lng: -114.070847}
+        });
+
+        // Get geolocation
+        if( navigator.geolocation) {
+            navigator.geolocation.watchPosition(set_my_position);
+        }
+        else {
+            alert("Geolocation doesn't work in your browser");
+        }
+
+        // Add markers
+        for(var i=0; i < markers.length; i++){
+
+            // Split this marker's info into an array
+            var marker_data = markers[i].trim().split(" ");
+
+            // Create the LatLng of the marker
+            var marker_position = new google.maps.LatLng(marker_data[0], marker_data[1]);
+
+            // Create a marker at this point
+            var marker = new google.maps.Marker({
+              position: marker_position,
+              icon: marker_data[2],
+              map: crash_site_map
+            });
+            // Add this marker to the list
+            all_markers.push(marker);
+        }
+
+        console.log(all_markers);
+
+        // SET YOUR OWN OLD POSITION (same as map center)
+        old_position = new google.maps.Marker({
+            position: {lat: 51.048615, lng: -114.070847},
+            map: crash_site_map
+        })
+    }
+
+    function set_my_position(position){
+        old_position.setMap(null);
+        var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        var marker = new google.maps.Marker({
+          position: pos,
+          icon: "robot.png",
+          map: crash_site_map
+        });
+        old_position = marker;
+        for(var i=0; i < all_markers.length; i++){
+            var distance = google.maps.geometry.spherical.computeDistanceBetween(pos, all_markers[i].getPosition());
+            if( distance < tolerance ){
+                console.log("Found it!")
+            }
+        }
+    }
+  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKuNQUKMC3P11z4IvPX_vNVFv_o_lKHd8&callback=initMap&libraries=geometry">
+  </script>
+  </body>
+</html>
